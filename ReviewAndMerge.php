@@ -1,4 +1,17 @@
 <?php
+/**
+ * ReviewAndMerge
+ * Review system for MediaWiki inspired by Git pull requests
+ * Extension definition
+ *
+ * PHP version 5.4
+ *
+ * @category Extension
+ * @package  ReviewAndMerge
+ * @author   Pierre Rudloff <contact@rudloff.pro>
+ * @license  GPL http://www.gnu.org/licenses/gpl.html
+ * @link     https://github.com/ShakePeers/mediawiki-ReviewAndMerge
+ * */
 $wgExtensionCredits['validextensionclass'][] = array(
    'name' => 'ReviewAndMerge',
    'author' =>'ShakePeers', 
@@ -7,8 +20,6 @@ $wgExtensionCredits['validextensionclass'][] = array(
 
 require_once 'ReviewAndMerge.class.php';
 
-//$wgGroupPermissions['*']['edit'] = false;
-//$wgGroupPermissions['user']['edit'] = false;
 $wgHooks['AlternateEdit'][] = 'ReviewAndMerge::checkIfCanEdit';
 $wgAutoloadClasses['ReviewAndMerge'] = __DIR__.'/ReviewAndMerge.class.php';
 $wgAutoloadClasses['SpecialReviewAndMerge'] = __DIR__.'/SpecialReviewAndMerge.php';
