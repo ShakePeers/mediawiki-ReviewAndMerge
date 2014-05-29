@@ -33,22 +33,25 @@ class ReviewAndMerge
      * */
     function checkIfCanEdit($editpage)
     {
-        global $wgOut, $wgUser;
-        if ($editpage->getContextTitle()->getSubpageText() !== 'Review') {
-            if ($editpage->getArticle()->getText()) {
-                $wgOut->redirect(
+        global $wgOut, $wgUser, $ReviewAndMergeNamespace, $wgExtraNamespaces;
+        $contextTitle = $editpage->getContextTitle();
+        if ($contextTitle->mNamespace == $ReviewAndMergeNamespace) {
+            if ($editpage->getContextTitle()->getSubpageText() !== 'Review') {
+                if ($editpage->getArticle()->getText()) {
+                    $wgOut->redirect(
+                        Title::newFromText(
+                            $contextTitle->getPrefixedText().'/Review'
+                        )->getEditURL()
+                    );
+                }
+            } else {
+                $origPage = new WikiPage(
                     Title::newFromText(
-                        $editpage->getContextTitle()->getBaseText().'/Review'
-                    )->getEditURL()
+                        $contextTitle->getNsText().':'.$contextTitle->getBaseText()
+                    )
                 );
+                $editpage->setPreloadedText($origPage->getText());
             }
-        } else {
-            $origPage = new WikiPage(
-                Title::newFromText(
-                    $editpage->getContextTitle()->getBaseText()
-                )
-            );
-            $editpage->setPreloadedText($origPage->getText());
         }
     }
 }
