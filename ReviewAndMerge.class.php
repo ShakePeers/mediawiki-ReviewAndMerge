@@ -35,7 +35,10 @@ class ReviewAndMerge
     {
         global $wgOut, $wgUser, $ReviewAndMergeNamespace, $wgExtraNamespaces;
         $contextTitle = $editpage->getContextTitle();
-        if ($contextTitle->mNamespace == $ReviewAndMergeNamespace) {
+        if ($contextTitle->mNamespace == $ReviewAndMergeNamespace
+            && !isset($_POST['wpPreview'])
+            && !isset($_POST['wpDiff'])
+        ) {
             if ($editpage->getContextTitle()->getSubpageText() !== 'Review') {
                 if ($editpage->getArticle()->getText()) {
                     $wgOut->redirect(
