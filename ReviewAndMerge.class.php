@@ -31,7 +31,7 @@ class ReviewAndMerge
      *
      * @return void
      * */
-    function checkIfCanEdit($editpage)
+    static function checkIfCanEdit($editpage)
     {
         global $wgOut, $wgUser, $ReviewAndMergeNamespace, $wgExtraNamespaces;
         $contextTitle = $editpage->getContextTitle();
