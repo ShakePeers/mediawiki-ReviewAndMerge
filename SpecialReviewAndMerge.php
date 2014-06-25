@@ -128,7 +128,7 @@ class SpecialReviewAndMerge extends SpecialPage
      *
      * @return void
      * */
-    function execute()
+    function execute($subpage)
     {
         global $wgContLang, $wgUser;
         $request = $this->getRequest();
