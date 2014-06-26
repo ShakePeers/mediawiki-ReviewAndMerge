@@ -148,7 +148,7 @@ class SpecialReviewAndMerge extends SpecialPage
         );
         $html .= '<h2><a href="'.$origTitle->getFullURL().'">'.
             $origTitle->getFullText().'</a></h2>';
-        if ($origPage->getUser() == $wgUser->getId()) {
+        if ($origPage->getOldestRevision()->getUser() == $wgUser->getId()) {
             $reviewTitle = Title::newFromText(
                 $origTitle->getFullText().'/Review'
             );
