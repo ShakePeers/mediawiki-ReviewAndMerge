@@ -126,6 +126,8 @@ class SpecialReviewAndMerge extends SpecialPage
     /**
      * Generate the Special:ReviewAndMerge page
      *
+     * @param void $subpage Not used here
+     *
      * @return void
      * */
     function execute($subpage)
