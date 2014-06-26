@@ -54,7 +54,7 @@ class ReviewAndMerge
                         $contextTitle->getNsText().':'.$contextTitle->getBaseText()
                     )
                 );
-                $editpage->setPreloadedText($origPage->getText());
+                $editpage->setPreloadedContent(new WikiTextContent($origPage->getText()));
             }
         }
     }
