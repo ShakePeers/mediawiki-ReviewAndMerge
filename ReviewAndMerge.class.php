@@ -38,6 +38,7 @@ class ReviewAndMerge
         if ($contextTitle->mNamespace == $ReviewAndMergeNamespace
             && !isset($_POST['wpPreview'])
             && !isset($_POST['wpDiff'])
+            && !isset($_POST['wpSave'])
         ) {
             if ($editpage->getContextTitle()->getSubpageText() !== 'Review') {
                 if ($editpage->getArticle()->getText()) {

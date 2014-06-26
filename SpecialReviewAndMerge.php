@@ -45,10 +45,12 @@ class SpecialReviewAndMerge extends SpecialPage
     static function applyDiff($diff, $text)
     {
         $tmpname = tempnam(sys_get_temp_dir(), "ReviewAndMerge");
+        $outname = tempnam(sys_get_temp_dir(), "ReviewAndMerge");
         $tmp = fopen($tmpname, "w");
+        $out = fopen($outname, "r");
         fwrite($tmp, $text.PHP_EOL);
         $proc = proc_open(
-            'patch '.$tmpname.' -o - ', array(
+            'patch '.$tmpname.' -o '.$outname, array(
                0 => array("pipe", "r"),
                1 => array("pipe", "w"),
                2 => array("pipe", "w")
@@ -57,7 +59,8 @@ class SpecialReviewAndMerge extends SpecialPage
         if (is_resource($proc)) {
             fwrite($pipes[0], $diff);
             fclose($pipes[0]);
-            $newText = stream_get_contents($pipes[1]);
+            stream_get_contents($pipes[1]);
+            $newText = stream_get_contents($out);
             fclose($pipes[1]);
             return $newText;
         }
@@ -68,31 +71,17 @@ class SpecialReviewAndMerge extends SpecialPage
      * 
      * @param string $diff        Diff
      * @param array  $num         Indexes of the hunks to extract
-     * @param string $origTitle   Original article title
-     * @param string $reviewTitle Review article title
      * 
      * @return string Diff
      * */
-    static function filterDiff($diff, $num, $origTitle, $reviewTitle)
+    static function filterDiff($diff, $num)
     {
-        $proc = proc_open(
-            __DIR__.'/filterdiff -# '.implode(',', $num), array(
-               0 => array("pipe", "r"),
-               1 => array("pipe", "w")
-            ), $pipes
-        );
-        if (is_resource($proc)) {
-            fwrite(
-                $pipes[0], 
-                '--- '.$origTitle.PHP_EOL.
-                '+++ '.$reviewTitle.PHP_EOL.
-                $diff
-            );
-            fclose($pipes[0]);
-            $newDiff = stream_get_contents($pipes[1]);
-            fclose($pipes[1]);
-            return $newDiff;
+        $split = self::splitDiff($diff);
+        $newDiff = '';
+        foreach($num as $hunk) {
+            $newDiff .= $split[$hunk - 1];
         }
+        return $newDiff;
     }
     
     /**
@@ -189,8 +178,7 @@ class SpecialReviewAndMerge extends SpecialPage
                     }
                     $format = new StrictUnifiedDiffFormatter();
                     $newDiff = self::filterDiff(
-                        $format->format($diff), $edits,
-                        $origTitle, $reviewTitle
+                        $format->format($diff), $edits
                     );
                     $editpage = new EditPage(new Article($origTitle));
                     $editpage->setContextTitle($origTitle);
