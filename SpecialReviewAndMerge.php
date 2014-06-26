@@ -132,7 +132,7 @@ class SpecialReviewAndMerge extends SpecialPage
      * */
     function execute($subpage)
     {
-        global $wgContLang, $wgUser;
+        global $wgContLang, $wgUser, $ReviewAndMergeNamespace;
         $request = $this->getRequest();
         $output = $this->getOutput();
         $this->setHeaders();
@@ -148,76 +148,85 @@ class SpecialReviewAndMerge extends SpecialPage
         $origPage = new WikiPage(
             $origTitle
         );
-        $html .= '<h2><a href="'.$origTitle->getFullURL().'">'.
-            $origTitle->getFullText().'</a></h2>';
-        if ($origPage->getOldestRevision()->getUser() == $wgUser->getId()) {
-            $reviewTitle = Title::newFromText(
-                $origTitle->getFullText().'/Review'
-            );
-            $reviewPage = new WikiPage(
-                $reviewTitle
-            );
-            $regexp = '/(?<=[.?!])\s+(?=[a-z])/i';
-            $origText = $origPage->getText();
-
-            $diff = new Diff(
-                explode(PHP_EOL, $wgContLang->segmentForDiff($origText)),
-                explode(PHP_EOL, $wgContLang->segmentForDiff($reviewPage->getText()))
-            );
-            if (isset($_POST['nbEdits'])) {
-                $output->addHTML(
-                    'Please check that changes have been applied correctly:'
+        if ($origTitle->mNamespace != $ReviewAndMergeNamespace) {
+            $html .= 'Review and Merge is not enabled for this namespace.';
+            $output->addHTML($html);
+        } else {
+            $html .= '<h2><a href="'.$origTitle->getFullURL().'">'.
+                $origTitle->getFullText().'</a></h2>';
+            if ($origPage->getOldestRevision()->getUser() == $wgUser->getId()) {
+                $reviewTitle = Title::newFromText(
+                    $origTitle->getFullText().'/Review'
                 );
-                $edits = array();
-                for ($i = 0; $i <= $_POST['nbEdits']; $i++) {
-                    if (isset($_POST['keepEdit_'.$i])
-                        && $_POST['keepEdit_'.$i] == 'on'
-                    ) {
-                        $edits[] = $i + 1;
+                $reviewPage = new WikiPage(
+                    $reviewTitle
+                );
+                $regexp = '/(?<=[.?!])\s+(?=[a-z])/i';
+                $origText = $origPage->getText();
+
+                $diff = new Diff(
+                    explode(PHP_EOL, $wgContLang->segmentForDiff($origText)),
+                    explode(
+                        PHP_EOL,
+                        $wgContLang->segmentForDiff($reviewPage->getText())
+                    )
+                );
+                if (isset($_POST['nbEdits'])) {
+                    $output->addHTML(
+                        'Please check that changes have been applied correctly:'
+                    );
+                    $edits = array();
+                    for ($i = 0; $i <= $_POST['nbEdits']; $i++) {
+                        if (isset($_POST['keepEdit_'.$i])
+                            && $_POST['keepEdit_'.$i] == 'on'
+                        ) {
+                            $edits[] = $i + 1;
+                        }
                     }
-                }
-                if (empty($edits)) {
-                    $output->redirect($reviewTitle);
-                    return;
-                }
-                $format = new StrictUnifiedDiffFormatter();
-                $newDiff = self::filterDiff(
-                    $format->format($diff), $edits,
-                    $origTitle, $reviewTitle
-                );
-                $editpage = new EditPage(new Article($origTitle));
-                $editpage->setContextTitle($origTitle);
-                $editpage->initialiseForm();
-                $editpage->summary 
-                    = 'Merged reviews from '.$reviewTitle->getFullText();
-                $editpage->textbox1 = self::applyDiff($newDiff, $origText);
-                $editpage->showEditForm();
+                    if (empty($edits)) {
+                        $output->redirect($reviewTitle);
+                        return;
+                    }
+                    $format = new StrictUnifiedDiffFormatter();
+                    $newDiff = self::filterDiff(
+                        $format->format($diff), $edits,
+                        $origTitle, $reviewTitle
+                    );
+                    $editpage = new EditPage(new Article($origTitle));
+                    $editpage->setContextTitle($origTitle);
+                    $editpage->initialiseForm();
+                    $editpage->summary
+                        = 'Merged reviews from '.$reviewTitle->getFullText();
+                    $editpage->textbox1 = self::applyDiff($newDiff, $origText);
+                    $editpage->showEditForm();
 
-            } else {
-                $format = new UnifiedDiffFormatter();
-                $nbDiffs = sizeof(self::splitDiff($format->format($diff)));
-                if ($nbDiffs > 0) {
-                    $html .= '<form action="" method="post">
-                        <input type="hidden" value="'.$nbDiffs.'" name="nbEdits" />';
-                    $this->getOutput()->addModuleStyles(
-                        'mediawiki.action.history.diff'
-                    );
-                    $diffEngine = new DifferenceEngine();
-                    $format = new ReviewAndMergeDiffFormatter();
-                    $html .= $diffEngine->addHeader(
-                        $format->format($diff),
-                        'Original version', 'Reviewed version'
-                    );
-                    $html .= '<input type="submit" value="Validate changes" />
-                    </form>';
                 } else {
-                    $html .= 'No changes to review';
+                    $format = new UnifiedDiffFormatter();
+                    $nbDiffs = sizeof(self::splitDiff($format->format($diff)));
+                    if ($nbDiffs > 0) {
+                        $html .= '<form action="" method="post">
+                            <input type="hidden"
+                                value="'.$nbDiffs.'" name="nbEdits" />';
+                        $this->getOutput()->addModuleStyles(
+                            'mediawiki.action.history.diff'
+                        );
+                        $diffEngine = new DifferenceEngine();
+                        $format = new ReviewAndMergeDiffFormatter();
+                        $html .= $diffEngine->addHeader(
+                            $format->format($diff),
+                            'Original version', 'Reviewed version'
+                        );
+                        $html .= '<input type="submit" value="Validate changes" />
+                        </form>';
+                    } else {
+                        $html .= 'No changes to review';
+                    }
+                    $output->addHTML($html);
                 }
+            } else {
+                $html .= 'Only the author of an article can merge reviews.';
                 $output->addHTML($html);
             }
-        } else {
-            $html .= 'Only the author of an article can merge reviews.';
-            $output->addHTML($html);
         }
     }
 }
