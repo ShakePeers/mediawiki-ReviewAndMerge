@@ -21,6 +21,7 @@ $wgExtensionCredits['validextensionclass'][] = array(
 require_once 'ReviewAndMerge.class.php';
 
 $wgHooks['AlternateEdit'][] = 'ReviewAndMerge::checkIfCanEdit';
+$wgHooks['BeforePageDisplay'][] = 'ReviewAndMerge::appendHeader';
 $wgAutoloadClasses['ReviewAndMerge'] = __DIR__.'/ReviewAndMerge.class.php';
 $wgAutoloadClasses['SpecialReviewAndMerge'] = __DIR__.'/SpecialReviewAndMerge.php';
 $wgSpecialPages['ReviewAndMerge'] = 'SpecialReviewAndMerge';

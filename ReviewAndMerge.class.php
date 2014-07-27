@@ -54,9 +54,26 @@ class ReviewAndMerge
                         $contextTitle->getNsText().':'.$contextTitle->getBaseText()
                     )
                 );
-                $editpage->setPreloadedContent(new WikiTextContent($origPage->getText()));
+                $editpage->setPreloadedContent(
+                    new WikiTextContent($origPage->getText())
+                );
             }
         }
+    }
+
+    /**
+     * Add CSS and JavaScript to <head>
+     *
+     * @param OutputPage &$out Output page
+     *
+     * @return void
+     * */
+    static function appendHeader(&$out)
+    {
+        global $wgScriptPath;
+        $out->addScriptFile($wgScriptPath.'/extensions/ReviewAndMerge/diff.js');
+        $out->addScriptFile($wgScriptPath.'/extensions/ReviewAndMerge/wDiff.js');
+        $out->addStyle($wgScriptPath.'/extensions/ReviewAndMerge/style.css');
     }
 }
 

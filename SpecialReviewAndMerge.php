@@ -67,10 +67,10 @@ class SpecialReviewAndMerge extends SpecialPage
     }
     
     /**
-     * Uses filterdiff to extract hunks from a diff
+     * Extract hunks from a diff
      * 
-     * @param string $diff        Diff
-     * @param array  $num         Indexes of the hunks to extract
+     * @param string $diff Diff
+     * @param array  $num  Indexes of the hunks to extract
      * 
      * @return string Diff
      * */
@@ -78,7 +78,7 @@ class SpecialReviewAndMerge extends SpecialPage
     {
         $split = self::splitDiff($diff);
         $newDiff = '';
-        foreach($num as $hunk) {
+        foreach ($num as $hunk) {
             $newDiff .= $split[$hunk - 1];
         }
         return $newDiff;
@@ -142,55 +142,89 @@ class SpecialReviewAndMerge extends SpecialPage
             $output->addHTML($html);
         } else {
             $html .= '<h2><a href="'.$origTitle->getFullURL().'">'.
-                $origTitle->getFullText().'</a></h2>';
-            if ($origPage->getOldestRevision()->getUser() == $wgUser->getId()) {
-                $reviewTitle = Title::newFromText(
-                    $origTitle->getFullText().'/Review'
-                );
-                $reviewPage = new WikiPage(
-                    $reviewTitle
-                );
-                $regexp = '/(?<=[.?!])\s+(?=[a-z])/i';
-                $origText = $origPage->getText();
+            $origTitle->getFullText().'</a></h2>';
+            $reviewTitle = Title::newFromText(
+                $origTitle->getFullText().'/Review'
+            );
+            $reviewPage = new WikiPage(
+                $reviewTitle
+            );
+            $regexp = '/(?<=[.?!])\s+(?=[a-z])/i';
+            $origText = $origPage->getText();
 
-                $diff = new Diff(
-                    explode(PHP_EOL, $wgContLang->segmentForDiff($origText)),
-                    explode(
-                        PHP_EOL,
-                        $wgContLang->segmentForDiff($reviewPage->getText())
-                    )
+            $diff = new Diff(
+                explode(PHP_EOL, $wgContLang->segmentForDiff($origText)),
+                explode(
+                    PHP_EOL,
+                    $wgContLang->segmentForDiff($reviewPage->getText())
+                )
+            );
+            if (isset($_POST['nbEdits'])
+                && $origPage->getOldestRevision()->getUser() == $wgUser->getId()
+            ) {
+                $output->addHTML(
+                    'Please check that changes have been applied correctly:'
                 );
-                if (isset($_POST['nbEdits'])) {
-                    $output->addHTML(
-                        'Please check that changes have been applied correctly:'
-                    );
-                    $edits = array();
-                    for ($i = 0; $i <= $_POST['nbEdits']; $i++) {
-                        if (isset($_POST['keepEdit_'.$i])
-                            && $_POST['keepEdit_'.$i] == 'on'
-                        ) {
-                            $edits[] = $i + 1;
-                        }
+                $edits = array();
+                for ($i = 0; $i <= $_POST['nbEdits']; $i++) {
+                    if (isset($_POST['keepEdit_'.$i])
+                        && $_POST['keepEdit_'.$i] == 'on'
+                    ) {
+                        $edits[] = $i + 1;
                     }
-                    if (empty($edits)) {
-                        $output->redirect($reviewTitle);
-                        return;
-                    }
-                    $format = new StrictUnifiedDiffFormatter();
-                    $newDiff = self::filterDiff(
-                        $format->format($diff), $edits
-                    );
-                    $editpage = new EditPage(new Article($origTitle));
-                    $editpage->setContextTitle($origTitle);
-                    $editpage->initialiseForm();
-                    $editpage->summary
-                        = 'Merged reviews from '.$reviewTitle->getFullText();
-                    $editpage->textbox1 = self::applyDiff($newDiff, $origText);
-                    $editpage->showEditForm();
+                }
+                if (empty($edits)) {
+                    $output->redirect($reviewTitle);
+                    return;
+                }
+                $format = new StrictUnifiedDiffFormatter();
+                $newDiff = self::filterDiff(
+                    $format->format($diff), $edits
+                );
+                $editpage = new EditPage(new Article($origTitle));
+                $editpage->setContextTitle($origTitle);
+                $editpage->initialiseForm();
+                $editpage->summary
+                    = 'Merged reviews from '.$reviewTitle->getFullText();
+                $editpage->textbox1 = self::applyDiff($newDiff, $origText);
+                $editpage->showEditForm();
 
+            } else {
+                $format = new UnifiedDiffFormatter();
+                $nbDiffs = sizeof(self::splitDiff($format->format($diff)));
+                $html .= '<button id="toggleInlineDiff" class="hidden">
+                    Toggle inline diff</button>';
+                if ($origPage->getOldestRevision()->getUser() == $wgUser->getId()) {
+                    $html .= '<form action="" method="post">
+                        <input type="hidden" value="'.$nbDiffs.'" name="nbEdits" />';
+                }
+                $html .= '<div class="hidden" id="inlineDiffs"></div>';
+                if ($origPage->getOldestRevision()->getUser() == $wgUser->getId()) {
+                    $html .= '<input type="submit" class="sendDiff hidden"
+                        value="Validate changes" /></form>';
+                }
+                if ($origPage->getOldestRevision()->getUser() != $wgUser->getId()) {
+                    if ($nbDiffs > 0) {
+                        $this->getOutput()->addModuleStyles(
+                            'mediawiki.action.history.diff'
+                        );
+                        $diffEngine = new DifferenceEngine();
+                        $format = new TableDiffFormatter();
+                        $html .= $diffEngine->addHeader(
+                            $format->format($diff),
+                            '<a href="'.$origTitle->getFullURL().
+                            '?oldid='.$origPage->getRevision()->getId().'">
+                            Original version</a>',
+                            '<a href="'.$reviewTitle->getFullURL().
+                            '?oldid='.$reviewPage->getRevision()->getId().'">
+                            Reviewed version</a>'
+                        );
+                    } else {
+                        $html .= 'No changes to review';
+                    }
+                    $html .= '<br/><i>
+                        Only the author of an article can merge reviews.</i>';
                 } else {
-                    $format = new UnifiedDiffFormatter();
-                    $nbDiffs = sizeof(self::splitDiff($format->format($diff)));
                     if ($nbDiffs > 0) {
                         $html .= '<form action="" method="post">
                             <input type="hidden"
@@ -202,17 +236,20 @@ class SpecialReviewAndMerge extends SpecialPage
                         $format = new ReviewAndMergeDiffFormatter();
                         $html .= $diffEngine->addHeader(
                             $format->format($diff),
-                            'Original version', 'Reviewed version'
+                            '<a href="'.$origTitle->getFullURL().
+                            '?oldid='.$origPage->getRevision()->getId().'">
+                            Original version</a>',
+                            '<a href="'.$reviewTitle->getFullURL().
+                            '?oldid='.$reviewPage->getRevision()->getId().'">
+                            Reviewed version</a>'
                         );
-                        $html .= '<input type="submit" value="Validate changes" />
+                        $html .= '<input type="submit" class="sendDiff"
+                            value="Validate changes" />
                         </form>';
                     } else {
                         $html .= 'No changes to review';
                     }
-                    $output->addHTML($html);
                 }
-            } else {
-                $html .= 'Only the author of an article can merge reviews.';
                 $output->addHTML($html);
             }
         }
