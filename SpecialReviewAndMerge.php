@@ -138,7 +138,7 @@ class SpecialReviewAndMerge extends SpecialPage
             $origTitle
         );
         if ($origTitle->mNamespace != $ReviewAndMergeNamespace) {
-            $html .= 'Review and Merge is not enabled for this namespace.';
+            $html .= wfMessage('notenabledfornamespace');
             $output->addHTML($html);
         } else {
             $html .= '<h2><a href="'.$origTitle->getFullURL().'">'.
@@ -163,7 +163,7 @@ class SpecialReviewAndMerge extends SpecialPage
                 && $origPage->getOldestRevision()->getUser() == $wgUser->getId()
             ) {
                 $output->addHTML(
-                    'Please check that changes have been applied correctly:'
+                    wfMessage('pleasecheckchanges').wfMessage('colon')
                 );
                 $edits = array();
                 for ($i = 0; $i <= $_POST['nbEdits']; $i++) {
@@ -185,15 +185,15 @@ class SpecialReviewAndMerge extends SpecialPage
                 $editpage->setContextTitle($origTitle);
                 $editpage->initialiseForm();
                 $editpage->summary
-                    = 'Merged reviews from '.$reviewTitle->getFullText();
+                    = wfMessage('mergedreviewsfrom').' '.$reviewTitle->getFullText();
                 $editpage->textbox1 = self::applyDiff($newDiff, $origText);
                 $editpage->showEditForm();
 
             } else {
                 $format = new UnifiedDiffFormatter();
                 $nbDiffs = sizeof(self::splitDiff($format->format($diff)));
-                $html .= '<button id="toggleInlineDiff" class="hidden">
-                    Toggle inline diff</button>';
+                $html .= '<button id="toggleInlineDiff" class="hidden">'.
+                    wfMessage('toggleinlinediff').'</button>';
                 if ($origPage->getOldestRevision()->getUser() == $wgUser->getId()) {
                     $html .= '<form action="" method="post">
                         <input type="hidden" value="'.$nbDiffs.'" name="nbEdits" />';
@@ -201,7 +201,7 @@ class SpecialReviewAndMerge extends SpecialPage
                 $html .= '<div class="hidden" id="inlineDiffs"></div>';
                 if ($origPage->getOldestRevision()->getUser() == $wgUser->getId()) {
                     $html .= '<input type="submit" class="sendDiff hidden"
-                        value="Validate changes" /></form>';
+                        value="'.wfMessage('validchanges').'" /></form>';
                 }
                 if ($origPage->getOldestRevision()->getUser() != $wgUser->getId()) {
                     if ($nbDiffs > 0) {
@@ -213,17 +213,17 @@ class SpecialReviewAndMerge extends SpecialPage
                         $html .= $diffEngine->addHeader(
                             $format->format($diff),
                             '<a href="'.$origTitle->getFullURL().
-                            '?oldid='.$origPage->getRevision()->getId().'">
-                            Original version</a>',
+                            '?oldid='.$origPage->getRevision()->getId().'">'.
+                            wfMessage('origversion').'</a>',
                             '<a href="'.$reviewTitle->getFullURL().
-                            '?oldid='.$reviewPage->getRevision()->getId().'">
-                            Reviewed version</a>'
+                            '?oldid='.$reviewPage->getRevision()->getId().'">'.
+                            wfMessage('revversion').'</a>'
                         );
                     } else {
-                        $html .= 'No changes to review';
+                        $html .= wfMessage('nochangesreview');
                     }
-                    $html .= '<br/><i>
-                        Only the author of an article can merge reviews.</i>';
+                    $html .= '<br/><i>'.
+                        wfMessage('onlyeauthorcanmergereviews').'</i>';
                 } else {
                     if ($nbDiffs > 0) {
                         $html .= '<form action="" method="post">
@@ -237,17 +237,17 @@ class SpecialReviewAndMerge extends SpecialPage
                         $html .= $diffEngine->addHeader(
                             $format->format($diff),
                             '<a href="'.$origTitle->getFullURL().
-                            '?oldid='.$origPage->getRevision()->getId().'">
-                            Original version</a>',
+                            '?oldid='.$origPage->getRevision()->getId().'">'.
+                            wfMessage('origversion').'</a>',
                             '<a href="'.$reviewTitle->getFullURL().
-                            '?oldid='.$reviewPage->getRevision()->getId().'">
-                            Reviewed version</a>'
+                            '?oldid='.$reviewPage->getRevision()->getId().'">'.
+                            wfMessage('revversion').'</a>'
                         );
                         $html .= '<input type="submit" class="sendDiff"
-                            value="Validate changes" />
+                            value="'.wfMessage('validchanges').'" />
                         </form>';
                     } else {
-                        $html .= 'No changes to review';
+                        $html .= wfMessage('nochangesreview');
                     }
                 }
                 $output->addHTML($html);

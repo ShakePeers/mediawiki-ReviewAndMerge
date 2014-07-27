@@ -61,7 +61,8 @@ class ReviewAndMergeDiffFormatter extends TableDiffFormatter
             <input type="checkbox" checked
             name="keepEdit_'.$this->nbEdits.'"
             id="keepEdit_'.$this->nbEdits.'" />
-            <label for="keepEdit_'.$this->nbEdits.'">Keep this edit</label>:
+            <label for="keepEdit_'.$this->nbEdits.'">'.
+            wfMessage('keepedit').'</label>'.wfMessage('colon').'
             </th></tr><tr><td colspan="2" class="diff-lineno">
             <!--LINE ' . $xbeg . "--></td>\n" .
             '<td colspan="2" class="diff-lineno">
