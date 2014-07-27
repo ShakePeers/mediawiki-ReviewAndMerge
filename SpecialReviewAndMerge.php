@@ -192,15 +192,15 @@ class SpecialReviewAndMerge extends SpecialPage
             } else {
                 $format = new UnifiedDiffFormatter();
                 $nbDiffs = sizeof(self::splitDiff($format->format($diff)));
-                $html .= '<button id="toggleInlineDiff" class="hidden">'.
+                $html .= '<button id="toggleInlineDiff" class="rw_hidden">'.
                     wfMessage('toggleinlinediff').'</button>';
                 if ($origPage->getOldestRevision()->getUser() == $wgUser->getId()) {
                     $html .= '<form action="" method="post">
                         <input type="hidden" value="'.$nbDiffs.'" name="nbEdits" />';
                 }
-                $html .= '<div class="hidden" id="inlineDiffs"></div>';
+                $html .= '<div class="rw_hidden" id="inlineDiffs"></div>';
                 if ($origPage->getOldestRevision()->getUser() == $wgUser->getId()) {
-                    $html .= '<input type="submit" class="sendDiff hidden"
+                    $html .= '<input type="submit" class="sendDiff rw_hidden"
                         value="'.wfMessage('validchanges').'" /></form>';
                 }
                 if ($origPage->getOldestRevision()->getUser() != $wgUser->getId()) {
