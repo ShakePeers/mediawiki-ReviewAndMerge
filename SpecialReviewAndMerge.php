@@ -137,8 +137,7 @@ class SpecialReviewAndMerge extends SpecialPage
         $origPage = new WikiPage(
             $origTitle
         );
-        if (
-            $origPage->getOldestRevision()->getUser() == $wgUser->getId()
+        if ($origPage->getOldestRevision()->getUser() == $wgUser->getId()
             || in_array('reviewandmerge', $wgUser->getRights())
         ) {
             $hasRights = true;
