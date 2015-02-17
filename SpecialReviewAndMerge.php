@@ -253,7 +253,8 @@ class SpecialReviewAndMerge extends SpecialPage
                             value="'.wfMessage('validchanges').'" />
                         </form>';
                     } else {
-                        $html .= wfMessage('nochangesreview');
+                        $html = '';
+                        $output->showErrorPage('error', 'nochangesreview');
                     }
                 }
                 $output->addHTML($html);
