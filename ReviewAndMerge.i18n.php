@@ -27,7 +27,8 @@ $messages['en'] = array(
         'Only the author of an article can merge reviews.',
     'mergedreviewsfrom' => 'Merged reviews from',
     'pleasecheckchanges' => 'Please check that changes have been applied correctly',
-    'notenabledfornamespace' => 'Review and Merge is not enabled for this namespace.'
+    'notenabledfornamespace' => 'Review and Merge is not enabled for this namespace.',
+    'cantmergereviews' => 'You are not allowed to merge reviews on this article.'
 );
 
 $messages['fr'] = array(
@@ -46,6 +47,7 @@ $messages['fr'] = array(
         'Veuillez vérifier que les modifications '.
         'ont été appliquées correctement',
     'notenabledfornamespace' =>
-        "Review and Merge n'est pas activé pour cet espace de nom."
+        "Review and Merge n'est pas activé pour cet espace de nom.",
+    'cantmergereviews' => "Vous n'êtes pas autorisé à fusionner les révisions de cet article."
 );
 

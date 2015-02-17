@@ -137,6 +137,14 @@ class SpecialReviewAndMerge extends SpecialPage
         $origPage = new WikiPage(
             $origTitle
         );
+        if (
+            $origPage->getOldestRevision()->getUser() == $wgUser->getId()
+            || in_array('reviewandmerge', $wgUser->getRights())
+        ) {
+            $hasRights = true;
+        } else {
+            $hasRights = false;
+        }
         if ($origTitle->mNamespace != $ReviewAndMergeNamespace) {
             $output->showErrorPage('error', 'notenabledfornamespace');
         } else {
@@ -159,7 +167,7 @@ class SpecialReviewAndMerge extends SpecialPage
                 )
             );
             if (isset($_POST['nbEdits'])
-                && $origPage->getOldestRevision()->getUser() == $wgUser->getId()
+                && $hasRights
             ) {
                 $output->addHTML(
                     wfMessage('pleasecheckchanges').wfMessage('colon')
@@ -193,16 +201,16 @@ class SpecialReviewAndMerge extends SpecialPage
                 $nbDiffs = sizeof(self::splitDiff($format->format($diff)));
                 $html .= '<button id="toggleInlineDiff" class="rw_hidden">'.
                     wfMessage('toggleinlinediff').'</button>';
-                if ($origPage->getOldestRevision()->getUser() == $wgUser->getId()) {
+                if ($hasRights) {
                     $html .= '<form action="" method="post">
                         <input type="hidden" value="'.$nbDiffs.'" name="nbEdits" />';
                 }
                 $html .= '<div class="rw_hidden" id="inlineDiffs"></div>';
-                if ($origPage->getOldestRevision()->getUser() == $wgUser->getId()) {
+                if ($hasRights) {
                     $html .= '<input type="submit" class="sendDiff rw_hidden"
                         value="'.wfMessage('validchanges').'" /></form>';
                 }
-                if ($origPage->getOldestRevision()->getUser() != $wgUser->getId()) {
+                if (!$hasRights) {
                     if ($nbDiffs > 0) {
                         $this->getOutput()->addModuleStyles(
                             'mediawiki.action.history.diff'
@@ -222,7 +230,7 @@ class SpecialReviewAndMerge extends SpecialPage
                         $html .= wfMessage('nochangesreview');
                     }
                     $html .= '<br/><i>'.
-                        wfMessage('onlyeauthorcanmergereviews').'</i>';
+                        wfMessage('cantmergereviews').'</i>';
                 } else {
                     if ($nbDiffs > 0) {
                         $html .= '<form action="" method="post">
