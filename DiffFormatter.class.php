@@ -84,6 +84,17 @@ class ReviewAndMergeDiffFormatter extends TableDiffFormatter
 class StrictUnifiedDiffFormatter extends UnifiedDiffFormatter
 {
     /**
+     * Number of leading context lines
+     * @var int
+     * */
+    protected $leadingContextLines = 0;
+
+    /**
+     * Number of trailing context lines
+     * @var int
+     * */
+    protected $trailingContextLines = 0;
+    /**
      * Add lines to diff
      *
      * @param array  $lines  Lines
