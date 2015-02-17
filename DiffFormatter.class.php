@@ -46,7 +46,7 @@ class ReviewAndMergeDiffFormatter extends TableDiffFormatter
      *
      * @return string
      */
-    function _block_header( $xbeg, $xlen, $ybeg, $ylen )
+    function blockHeader( $xbeg, $xlen, $ybeg, $ylen )
     {
         $r = '';
         if ($xbeg > 1) {
@@ -91,7 +91,7 @@ class StrictUnifiedDiffFormatter extends UnifiedDiffFormatter
      *
      * @return void
      */
-    function _lines( $lines, $prefix = ' ' )
+    function lines( $lines, $prefix = ' ' )
     {
         foreach ( $lines as $line ) {
             echo "$prefix$line\n";
