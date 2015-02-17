@@ -64,7 +64,7 @@ class ReviewAndMerge
     /**
      * Add CSS and JavaScript to <head>
      *
-     * @param OutputPage &$out Output page
+     * @param OutputPage $out Output page
      *
      * @return void
      * */
