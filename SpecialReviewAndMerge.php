@@ -138,8 +138,7 @@ class SpecialReviewAndMerge extends SpecialPage
             $origTitle
         );
         if ($origTitle->mNamespace != $ReviewAndMergeNamespace) {
-            $html .= wfMessage('notenabledfornamespace');
-            $output->addHTML($html);
+            $output->showErrorPage('error', 'notenabledfornamespace');
         } else {
             $html .= '<h2><a href="'.$origTitle->getFullURL().'">'.
             $origTitle->getFullText().'</a></h2>';
