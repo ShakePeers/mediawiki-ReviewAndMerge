@@ -28,6 +28,14 @@ $(window).on(
                 $('#inlineDiffs').append(newHTML);
             }
         );
+        $('#inlineDiffs > div').each(
+            function (i, item) {
+                var $input = $(item).find('input'),
+                    $label = $(item).find('label');
+                $input.attr('id', $input.attr('id') + '_inline');
+                $label.attr('for', $label.attr('for') + '_inline');
+            }
+        );
         $('#toggleInlineDiff').show().click(
             function () {
                 $('#inlineDiffs, .sendDiff, table.diff').toggle();
