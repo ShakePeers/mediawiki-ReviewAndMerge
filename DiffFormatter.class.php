@@ -31,8 +31,8 @@ class ReviewAndMergeDiffFormatter extends TableDiffFormatter
      * */
     function __construct()
     {
-        $this->leadingContextLines = 2;
-        $this->trailingContextLines = 2;
+        $this->leadingContextLines = 0;
+        $this->trailingContextLines = 0;
         $this->nbEdits = 0;
     }
 
