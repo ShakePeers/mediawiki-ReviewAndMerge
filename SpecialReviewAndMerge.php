@@ -197,7 +197,7 @@ class SpecialReviewAndMerge extends SpecialPage
                     $editpage->showEditForm();
 
                 } else {
-                    $format = new UnifiedDiffFormatter();
+                    $format = new StrictUnifiedDiffFormatter();
                     $nbDiffs = sizeof(self::splitDiff($format->format($diff)));
                     $html .= '<button id="toggleInlineDiff" class="rw_hidden">'.
                         wfMessage('toggleinlinediff').'</button>';
