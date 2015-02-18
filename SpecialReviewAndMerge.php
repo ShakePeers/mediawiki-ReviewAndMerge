@@ -126,139 +126,143 @@ class SpecialReviewAndMerge extends SpecialPage
         $output = $this->getOutput();
         $this->setHeaders();
         $html = '';
-        $origTitle = Title::newFromText(
-            $_GET['article']
-        );
-        if ($origTitle->getSubpageText() == 'Review') {
+        if (isset($_GET['article'])) {
             $origTitle = Title::newFromText(
-                $origTitle->getNsText().':'.$origTitle->getBaseText()
+                $_GET['article']
             );
-        }
-        $origPage = new WikiPage(
-            $origTitle
-        );
-        if ($origPage->getOldestRevision()->getUser() == $wgUser->getId()
-            || in_array('reviewandmerge', $wgUser->getRights())
-        ) {
-            $hasRights = true;
-        } else {
-            $hasRights = false;
-        }
-        if ($origTitle->mNamespace != $ReviewAndMergeNamespace) {
-            $output->showErrorPage('error', 'notenabledfornamespace');
-        } else {
-            $html .= '<h2><a href="'.$origTitle->getFullURL().'">'.
-            $origTitle->getFullText().'</a></h2>';
-            $reviewTitle = Title::newFromText(
-                $origTitle->getFullText().'/Review'
-            );
-            $reviewPage = new WikiPage(
-                $reviewTitle
-            );
-            $regexp = '/(?<=[.?!])\s+(?=[a-z])/i';
-            $origText = $origPage->getText();
-
-            $diff = new Diff(
-                explode(PHP_EOL, $wgContLang->segmentForDiff($origText)),
-                explode(
-                    PHP_EOL,
-                    $wgContLang->segmentForDiff($reviewPage->getText())
-                )
-            );
-            if (isset($_POST['nbEdits'])
-                && $hasRights
-            ) {
-                $output->addHTML(
-                    wfMessage('pleasecheckchanges').wfMessage('colon')
+            if ($origTitle->getSubpageText() == 'Review') {
+                $origTitle = Title::newFromText(
+                    $origTitle->getNsText().':'.$origTitle->getBaseText()
                 );
-                $edits = array();
-                for ($i = 0; $i <= $_POST['nbEdits']; $i++) {
-                    if (isset($_POST['keepEdit_'.$i])
-                        && $_POST['keepEdit_'.$i] == 'on'
-                    ) {
-                        $edits[] = $i + 1;
-                    }
-                }
-                if (empty($edits)) {
-                    $output->redirect($reviewTitle);
-                    return;
-                }
-                $format = new StrictUnifiedDiffFormatter();
-                $newDiff = self::filterDiff(
-                    $format->format($diff), $edits
-                );
-                $editpage = new EditPage(new Article($origTitle));
-                $editpage->setContextTitle($origTitle);
-                $editpage->initialiseForm();
-                $editpage->summary
-                    = wfMessage('mergedreviewsfrom').' '.$reviewTitle->getFullText();
-                $editpage->textbox1 = self::applyDiff($newDiff, $origText);
-                $editpage->showEditForm();
-
-            } else {
-                $format = new UnifiedDiffFormatter();
-                $nbDiffs = sizeof(self::splitDiff($format->format($diff)));
-                $html .= '<button id="toggleInlineDiff" class="rw_hidden">'.
-                    wfMessage('toggleinlinediff').'</button>';
-                if ($hasRights) {
-                    $html .= '<form action="" method="post">
-                        <input type="hidden" value="'.$nbDiffs.'" name="nbEdits" />';
-                }
-                $html .= '<div class="rw_hidden" id="inlineDiffs"></div>';
-                if ($hasRights) {
-                    $html .= '<input type="submit" class="sendDiff rw_hidden"
-                        value="'.wfMessage('validchanges').'" /></form>';
-                }
-                if (!$hasRights) {
-                    if ($nbDiffs > 0) {
-                        $this->getOutput()->addModuleStyles(
-                            'mediawiki.action.history.diff'
-                        );
-                        $diffEngine = new DifferenceEngine();
-                        $format = new TableDiffFormatter();
-                        $html .= $diffEngine->addHeader(
-                            $format->format($diff),
-                            '<a href="'.$origTitle->getFullURL().
-                            '?oldid='.$origPage->getRevision()->getId().'">'.
-                            wfMessage('origversion').'</a>',
-                            '<a href="'.$reviewTitle->getFullURL().
-                            '?oldid='.$reviewPage->getRevision()->getId().'">'.
-                            wfMessage('revversion').'</a>'
-                        );
-                    } else {
-                        $html .= wfMessage('nochangesreview');
-                    }
-                    $html .= '<br/><i>'.
-                        wfMessage('cantmergereviews').'</i>';
-                } else {
-                    if ($nbDiffs > 0) {
-                        $html .= '<form action="" method="post">
-                            <input type="hidden"
-                                value="'.$nbDiffs.'" name="nbEdits" />';
-                        $this->getOutput()->addModuleStyles(
-                            'mediawiki.action.history.diff'
-                        );
-                        $diffEngine = new DifferenceEngine();
-                        $format = new ReviewAndMergeDiffFormatter();
-                        $html .= $diffEngine->addHeader(
-                            $format->format($diff),
-                            '<a href="'.$origTitle->getFullURL().
-                            '?oldid='.$origPage->getRevision()->getId().'">'.
-                            wfMessage('origversion').'</a>',
-                            '<a href="'.$reviewTitle->getFullURL().
-                            '?oldid='.$reviewPage->getRevision()->getId().'">'.
-                            wfMessage('revversion').'</a>'
-                        );
-                        $html .= '<input type="submit" class="sendDiff"
-                            value="'.wfMessage('validchanges').'" />
-                        </form>';
-                    } else {
-                        $html = '';
-                        $output->showErrorPage('error', 'nochangesreview');
-                    }
-                }
-                $output->addHTML($html);
             }
+            $origPage = new WikiPage(
+                $origTitle
+            );
+            if ($origPage->getOldestRevision()->getUser() == $wgUser->getId()
+                || in_array('reviewandmerge', $wgUser->getRights())
+            ) {
+                $hasRights = true;
+            } else {
+                $hasRights = false;
+            }
+            if ($origTitle->mNamespace != $ReviewAndMergeNamespace) {
+                $output->showErrorPage('error', 'notenabledfornamespace');
+            } else {
+                $html .= '<h2><a href="'.$origTitle->getFullURL().'">'.
+                $origTitle->getFullText().'</a></h2>';
+                $reviewTitle = Title::newFromText(
+                    $origTitle->getFullText().'/Review'
+                );
+                $reviewPage = new WikiPage(
+                    $reviewTitle
+                );
+                $regexp = '/(?<=[.?!])\s+(?=[a-z])/i';
+                $origText = $origPage->getText();
+
+                $diff = new Diff(
+                    explode(PHP_EOL, $wgContLang->segmentForDiff($origText)),
+                    explode(
+                        PHP_EOL,
+                        $wgContLang->segmentForDiff($reviewPage->getText())
+                    )
+                );
+                if (isset($_POST['nbEdits'])
+                    && $hasRights
+                ) {
+                    $output->addHTML(
+                        wfMessage('pleasecheckchanges').wfMessage('colon')
+                    );
+                    $edits = array();
+                    for ($i = 0; $i <= $_POST['nbEdits']; $i++) {
+                        if (isset($_POST['keepEdit_'.$i])
+                            && $_POST['keepEdit_'.$i] == 'on'
+                        ) {
+                            $edits[] = $i + 1;
+                        }
+                    }
+                    if (empty($edits)) {
+                        $output->redirect($reviewTitle);
+                        return;
+                    }
+                    $format = new StrictUnifiedDiffFormatter();
+                    $newDiff = self::filterDiff(
+                        $format->format($diff), $edits
+                    );
+                    $editpage = new EditPage(new Article($origTitle));
+                    $editpage->setContextTitle($origTitle);
+                    $editpage->initialiseForm();
+                    $editpage->summary
+                        = wfMessage('mergedreviewsfrom').' '.$reviewTitle->getFullText();
+                    $editpage->textbox1 = self::applyDiff($newDiff, $origText);
+                    $editpage->showEditForm();
+
+                } else {
+                    $format = new UnifiedDiffFormatter();
+                    $nbDiffs = sizeof(self::splitDiff($format->format($diff)));
+                    $html .= '<button id="toggleInlineDiff" class="rw_hidden">'.
+                        wfMessage('toggleinlinediff').'</button>';
+                    if ($hasRights) {
+                        $html .= '<form action="" method="post">
+                            <input type="hidden" value="'.$nbDiffs.'" name="nbEdits" />';
+                    }
+                    $html .= '<div class="rw_hidden" id="inlineDiffs"></div>';
+                    if ($hasRights) {
+                        $html .= '<input type="submit" class="sendDiff rw_hidden"
+                            value="'.wfMessage('validchanges').'" /></form>';
+                    }
+                    if (!$hasRights) {
+                        if ($nbDiffs > 0) {
+                            $this->getOutput()->addModuleStyles(
+                                'mediawiki.action.history.diff'
+                            );
+                            $diffEngine = new DifferenceEngine();
+                            $format = new TableDiffFormatter();
+                            $html .= $diffEngine->addHeader(
+                                $format->format($diff),
+                                '<a href="'.$origTitle->getFullURL().
+                                '?oldid='.$origPage->getRevision()->getId().'">'.
+                                wfMessage('origversion').'</a>',
+                                '<a href="'.$reviewTitle->getFullURL().
+                                '?oldid='.$reviewPage->getRevision()->getId().'">'.
+                                wfMessage('revversion').'</a>'
+                            );
+                        } else {
+                            $html .= wfMessage('nochangesreview');
+                        }
+                        $html .= '<br/><i>'.
+                            wfMessage('cantmergereviews').'</i>';
+                    } else {
+                        if ($nbDiffs > 0) {
+                            $html .= '<form action="" method="post">
+                                <input type="hidden"
+                                    value="'.$nbDiffs.'" name="nbEdits" />';
+                            $this->getOutput()->addModuleStyles(
+                                'mediawiki.action.history.diff'
+                            );
+                            $diffEngine = new DifferenceEngine();
+                            $format = new ReviewAndMergeDiffFormatter();
+                            $html .= $diffEngine->addHeader(
+                                $format->format($diff),
+                                '<a href="'.$origTitle->getFullURL().
+                                '?oldid='.$origPage->getRevision()->getId().'">'.
+                                wfMessage('origversion').'</a>',
+                                '<a href="'.$reviewTitle->getFullURL().
+                                '?oldid='.$reviewPage->getRevision()->getId().'">'.
+                                wfMessage('revversion').'</a>'
+                            );
+                            $html .= '<input type="submit" class="sendDiff"
+                                value="'.wfMessage('validchanges').'" />
+                            </form>';
+                        } else {
+                            $html = '';
+                            $output->showErrorPage('error', 'nochangesreview');
+                        }
+                    }
+                    $output->addHTML($html);
+                }
+            }
+        } else {
+            $output->showErrorPage('error', 'noarticle');
         }
     }
 }
