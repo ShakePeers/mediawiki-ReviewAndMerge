@@ -241,18 +241,24 @@ class SpecialReviewAndMerge extends SpecialPage
                             );
                             $diffEngine = new DifferenceEngine();
                             $format = new ReviewAndMergeDiffFormatter();
-                            $html .= $diffEngine->addHeader(
-                                $format->format($diff),
-                                '<a href="'.$origTitle->getFullURL().
-                                '?oldid='.$origPage->getRevision()->getId().'">'.
-                                wfMessage('origversion').'</a>',
-                                '<a href="'.$reviewTitle->getFullURL().
-                                '?oldid='.$reviewPage->getRevision()->getId().'">'.
-                                wfMessage('revversion').'</a>'
-                            );
-                            $html .= '<input type="submit" class="sendDiff"
-                                value="'.wfMessage('validchanges').'" />
-                            </form>';
+                            $reviewPageRevision = $reviewPage->getRevision();
+                            if (isset($reviewPageRevision)) {
+                                $html .= $diffEngine->addHeader(
+                                    $format->format($diff),
+                                    '<a href="'.$origTitle->getFullURL().
+                                    '?oldid='.$origPage->getRevision()->getId().'">'.
+                                    wfMessage('origversion').'</a>',
+                                    '<a href="'.$reviewTitle->getFullURL().
+                                    '?oldid='.$reviewPage->getRevision()->getId().'">'.
+                                    wfMessage('revversion').'</a>'
+                                );
+                                $html .= '<input type="submit" class="sendDiff"
+                                    value="'.wfMessage('validchanges').'" />
+                                </form>';
+                            } else {
+                                $html = '';
+                                $output->showErrorPage('error', 'nochangesreview');
+                            }
                         } else {
                             $html = '';
                             $output->showErrorPage('error', 'nochangesreview');
